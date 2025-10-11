@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>YouTube Search Bar</title>
+  <style>
+    body {
+      background-color: #f9f9f9;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding-top: 100px;
+    }
+
+    h2 {
+      color: #cc0000;
+    }
+
+    .search-container {
+      display: inline-block;
+      background: #fff;
+      padding: 20px 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    input[type="text"] {
+      width: 300px;
+      padding: 10px;
+      border: 2px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: #cc0000;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin-left: 10px;
+      background-color: #cc0000;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #b30000;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Search on YouTube</h2>
+  <div class="search-container">
+    <form id="youtubeSearchForm">
+      <input type="text" id="searchInput" placeholder="Type something..." required>
+      <button type="submit">Search</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById("youtubeSearchForm").addEventListener("submit", function(event) {
+      event.preventDefault(); // Prevent actual form submission
+
+      const query = document.getElementById("searchInput").value.trim();
+
+      if (query !== "") {
+        const youtubeURL = "https://www.youtube.com/results?search_query=" + encodeURIComponent(query);
+        window.open(youtubeURL, "_blank"); // Opens in new tab
+      }
+    });
+  </script>
+
+</body>
+</html>
