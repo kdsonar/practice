@@ -4,13 +4,16 @@
   <meta charset="UTF-8">
   <title>Search Google & YouTube</title>
 
-  <!-- Browser Tab Favicon (YouTube) -->
-  <link rel="icon" href="https://www.youtube.com/s/desktop/8e6aa6b0/img/favicon.ico" type="image/x-icon">
+  <!-- ✅ Browser Tab Favicon (YouTube) -->
+  <link rel="icon" href="https://www.youtube.com/favicon.ico" type="image/x-icon">
+
+  <!-- ✅ Google Font: Roboto -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
 
   <style>
     body {
       background-color: #f9f9f9;
-      font-family: Arial, sans-serif;
+      font-family: 'Roboto', sans-serif;
       text-align: center;
       padding: 50px 0;
     }
@@ -22,7 +25,7 @@
       margin: 20px;
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      width: 360px;
+      width: 400px;
     }
 
     .search-container img {
@@ -35,8 +38,17 @@
       margin: 10px 0;
     }
 
+    form {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
     input[type="text"] {
-      width: 250px;
+      flex: 1;
+      min-width: 200px;
       padding: 10px;
       border: 2px solid #ccc;
       border-radius: 5px;
@@ -50,13 +62,13 @@
 
     button {
       padding: 10px 20px;
-      margin-left: 10px;
       background-color: #555;
       color: white;
       border: none;
       border-radius: 5px;
       font-size: 16px;
       cursor: pointer;
+      white-space: nowrap;
     }
 
     button:hover {
@@ -84,7 +96,7 @@
 
   <!-- Google Search -->
   <div class="search-container google">
-    <img src="https://www.google.com/favicon.ico" alt="Google Logo">
+    <img src="https://www.google.com/images/branding/product/ico/googleg_lodp.ico" alt="Google Logo">
     <h2>Search on Google</h2>
     <form id="googleSearchForm">
       <input type="text" id="googleSearchInput" placeholder="Type something..." required>
@@ -94,7 +106,7 @@
 
   <!-- YouTube Search -->
   <div class="search-container youtube">
-    <img src="https://www.youtube.com/s/desktop/8e6aa6b0/img/favicon_32.png" alt="YouTube Logo">
+    <img src="https://www.youtube.com/img/desktop/yt_1200.png" alt="YouTube Logo" style="height:28px;">
     <h2>Search on YouTube</h2>
     <form id="youtubeSearchForm">
       <input type="text" id="youtubeSearchInput" placeholder="Type something..." required>
