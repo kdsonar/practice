@@ -64,13 +64,13 @@
 
   <script>
     document.getElementById("youtubeSearchForm").addEventListener("submit", function(event) {
-      event.preventDefault(); // Prevent actual form submission
+      event.preventDefault(); // Prevent form reload
 
       const query = document.getElementById("searchInput").value.trim();
 
       if (query !== "") {
         const youtubeURL = "https://www.youtube.com/results?search_query=" + encodeURIComponent(query);
-        window.open(youtubeURL, "_blank"); // Opens in new tab
+        window.location.href = youtubeURL; // Open in the same tab
       }
     });
   </script>
