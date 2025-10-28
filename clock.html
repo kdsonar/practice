@@ -15,6 +15,7 @@
       justify-content: center;
       height: 100vh;
       margin: 0;
+      text-align: center;
     }
 
     #clock {
@@ -39,7 +40,7 @@
 <body>
   <div id="clock">--:--:--</div>
   <div id="date">Loading date...</div>
-  <div id="msg">✨️ GLDNTM IS RNNG | STY FCSD 📚<br> <br> EVRON IS WTNG FR UR AURA STS 🔥 <br> <br> U SHLD MST SHW THM UR AURA TO KEEP THEM SILENT FOREVER IN FRONT OF YOU</div>
+  <div id="msg">✨️ GLDNTM IS RNNG | STY FCSD 📚<br> <br> EVRON IS WTNG FR UR AURA STS 🔥 <br> <br> U WL ND TO PRV URSLF TO KP THM SLNT FRVR IN FRNT OF U</div>
 
   <script>
     function updateClock() {
@@ -60,7 +61,7 @@
       seconds = seconds.toString().padStart(2, '0');
 
       // Display time
-      document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds} ${ampm}`;
+      document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
 
       // Display date
       const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
