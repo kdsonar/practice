@@ -17,6 +17,7 @@
       margin: 0;
       text-align: center;
       font-weight: bold;
+      overflow: hidden; /* prevent scroll bounce */
     }
 
     #clock {
@@ -34,44 +35,9 @@
       margin-top: 10px;
     }
 
-    /* 🔘 Toggle button */
-    #toggleBtn {
+    #toggleBtn, #unlockBtn {
       position: fixed;
       bottom: 20px;
-      right: 20px;
-      background-color: #333;
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 16px;
-      z-index: 1002;
-      transition: background 0.3s;
-    }
-
-    #toggleBtn:hover {
-      background-color: #555;
-    }
-
-    /* 🚫 Transparent overlay to block input */
-    #overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0); /* fully transparent */
-      z-index: 1001;
-      display: none;
-      pointer-events: all; /* capture clicks to block them */
-    }
-
-    /* Unlock hint text */
-    #unlockBtn {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
       background-color: #333;
       color: #fff;
       border: none;
@@ -80,7 +46,34 @@
       cursor: pointer;
       font-size: 16px;
       z-index: 1003;
+      transition: background 0.3s;
+    }
+
+    #toggleBtn:hover, #unlockBtn:hover {
+      background-color: #555;
+    }
+
+    #toggleBtn { right: 20px; }
+    #unlockBtn { left: 20px; display: none; }
+
+    /* 🚫 Overlay blocks all interaction including touch */
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0); /* transparent */
+      z-index: 1002;
       display: none;
+      touch-action: none; /* prevent touch gestures */
+      pointer-events: all;
+    }
+
+    /* Disable scrolling globally when locked */
+    body.locked {
+      overflow: hidden;
+      touch-action: none;
     }
   </style>
 </head>
@@ -89,29 +82,21 @@
   <div id="date">Loading date...</div>
   <div id="msg"><br>✨️ GLDNTM IS RNNG | STY FCSD 📚<br><br>EVRON IS WTNG FR UR AURA STS 🔥<br><br>U WL ND TO PRV URSLF TO KP THM<br>SLNT FRVR IN FRNT OF U</div>
 
-  <!-- Buttons + invisible overlay -->
   <button id="toggleBtn">Disable Screen</button>
-  <div id="overlay"></div>
   <button id="unlockBtn">Enable Screen</button>
+  <div id="overlay"></div>
 
   <script>
     function updateClock() {
       const now = new Date();
-
-      // Get time parts
       let hours = now.getHours();
       let minutes = now.getMinutes();
       let seconds = now.getSeconds();
-
-      // Convert to 12-hour format
       const ampm = hours >= 12 ? 'PM' : 'AM';
       hours = hours % 12 || 12;
-
-      // Pad with leading zeros
       hours = hours.toString().padStart(2, '0');
       minutes = minutes.toString().padStart(2, '0');
       seconds = seconds.toString().padStart(2, '0');
-
       document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
       const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
       document.getElementById('date').textContent = now.toLocaleDateString('en-US', options);
@@ -120,22 +105,29 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // 🟢 Disable screen (block clicks)
     const overlay = document.getElementById('overlay');
     const toggleBtn = document.getElementById('toggleBtn');
     const unlockBtn = document.getElementById('unlockBtn');
 
+    // Disable screen
     toggleBtn.addEventListener('click', () => {
-      overlay.style.display = 'block'; // block screen
+      overlay.style.display = 'block';
+      document.body.classList.add('locked');
       toggleBtn.style.display = 'none';
       unlockBtn.style.display = 'block';
     });
 
+    // Enable screen
     unlockBtn.addEventListener('click', () => {
-      overlay.style.display = 'none'; // unblock screen
+      overlay.style.display = 'none';
+      document.body.classList.remove('locked');
       unlockBtn.style.display = 'none';
       toggleBtn.style.display = 'block';
     });
+
+    // Prevent accidental scrolls/taps on overlay
+    overlay.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+    overlay.addEventListener('click', e => e.preventDefault());
   </script>
 </body>
 </html>
