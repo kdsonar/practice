@@ -20,11 +20,10 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            /* svh (small viewport height) prevents mobile browser toolbars from cutting off content */
             min-height: 100svh;
             overflow: hidden;
             position: relative;
-            padding: 1rem;
+            padding: 1.5rem;
         }
 
         /* Fullscreen Toggle Button */
@@ -35,7 +34,7 @@
             background: transparent;
             border: 1px solid #27272a;
             color: #71717a;
-            padding: 0.75rem; /* Larger tap target for mobile devices */
+            padding: 0.75rem;
             border-radius: 8px;
             cursor: pointer;
             display: flex;
@@ -43,9 +42,10 @@
             justify-content: center;
             transition: all 0.2s ease;
             -webkit-tap-highlight-color: transparent;
+            z-index: 10;
         }
 
-        /* Hide fullscreen button completely on iOS Safari since it lacks standard Fullscreen API support */
+        /* Hide fullscreen button completely on iOS Safari due to lack of standard support */
         @supports (-webkit-touch-callout: none) and (not (sidebar-color: unset)) {
             .fullscreen-btn {
                 display: none;
@@ -72,8 +72,12 @@
         .stopwatch-container {
             text-align: center;
             width: 100%;
-            max-width: 500px;
-            padding: 1rem;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
             user-select: none;
         }
 
@@ -83,37 +87,56 @@
             letter-spacing: -0.02em;
             font-variant-numeric: tabular-nums; 
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-            margin-bottom: 3.5rem;
             color: #f4f4f5;
             text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
             display: flex;
             align-items: baseline;
             justify-content: center;
-            flex-wrap: nowrap; /* Forces time to stay inline on narrow screens */
+            width: 100%;
         }
 
         /* Main Clock Face (HH:MM:SS) */
         .main-time {
-            font-size: clamp(3.2rem, 14vw, 6.5rem); /* Dynamically scales based on device width */
-            transition: font-size 0.25s ease;
+            font-size: clamp(3rem, 12vw, 6.5rem);
+            transition: font-size 0.2s ease;
         }
 
         /* Milliseconds Separator & Digits */
         .ms-time {
-            font-size: clamp(1.8rem, 7.5vw, 3.5rem);
+            font-size: clamp(1.6rem, 6vw, 3.5rem);
             color: #71717a;
             margin-left: 0.15rem;
             font-weight: 200;
-            transition: font-size 0.25s ease;
+            transition: font-size 0.2s ease;
         }
 
-        /* Immersive Responsive Fullscreen Rules */
+        /* SMART MOBILE FULLSCREEN OPTIMIZATIONS */
+        
+        /* 1. If screen is in landscape (short & wide) like a turned phone */
+        @media (max-height: 450px) {
+            .stopwatch-container {
+                gap: 1rem;
+            }
+            .main-time {
+                font-size: clamp(3rem, 15vh, 5.5rem);
+            }
+            .ms-time {
+                font-size: clamp(1.5rem, 8vh, 2.8rem);
+            }
+            .btn {
+                padding: 0.6rem 0 !important;
+                font-size: 0.95rem !important;
+            }
+        }
+
+        /* 2. When native fullscreen is activated */
         :fullscreen .main-time {
-            font-size: clamp(4.5rem, 18vw, 12rem);
+            /* Scales cleanly based on viewport height OR width, whichever is tighter */
+            font-size: clamp(4rem, min(16vw, 16vh), 11rem);
         }
         
         :fullscreen .ms-time {
-            font-size: clamp(2.5rem, 9.5vw, 6rem);
+            font-size: clamp(2rem, min(8vw, 8vh), 5.5rem);
         }
 
         /* Controls Layout */
@@ -122,6 +145,7 @@
             gap: 1rem;
             justify-content: center;
             width: 100%;
+            max-width: 340px;
         }
 
         /* Shared Button Aesthetics */
@@ -136,12 +160,10 @@
             cursor: pointer;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             outline: none;
-            flex: 1; /* Allows buttons to share container width equally on mobile screens */
-            max-width: 160px;
-            -webkit-tap-highlight-color: transparent; /* Removes blue tap flash on mobile browsers */
+            flex: 1;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* Desktop specific styles to avoid sticky hover states on mobile touch profiles */
         @media (hover: hover) {
             .btn:hover {
                 color: #f4f4f5;
@@ -172,7 +194,6 @@
 </head>
 <body>
 
-    <!-- Minimal Fullscreen Toggle -->
     <button class="fullscreen-btn" id="fullscreenBtn" title="Toggle Fullscreen">
         <svg id="fsIcon" viewBox="0 0 24 24">
             <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
@@ -180,7 +201,6 @@
     </button>
 
     <div class="stopwatch-container">
-        <!-- Display Block -->
         <div class="time-display">
             <span class="main-time" id="mainDisplay">00:00:00</span>
             <span class="ms-time" id="msDisplay">.00</span>
@@ -193,7 +213,6 @@
     </div>
 
     <script>
-        // DOM Handles
         const mainDisplay = document.getElementById('mainDisplay');
         const msDisplay = document.getElementById('msDisplay');
         const toggleBtn = document.getElementById('toggleBtn');
@@ -201,16 +220,13 @@
         const fullscreenBtn = document.getElementById('fullscreenBtn');
         const fsIcon = document.getElementById('fsIcon');
 
-        // Core Tracking State
         let startTime = 0;
         let elapsedTime = 0;
         let timerInterval = null;
         let isRunning = false;
 
-        // Formats milliseconds into distinct base clock and sub-second components
         function updateTimeStrings(ms) {
             let totalSeconds = Math.floor(ms / 1000);
-            
             let hours = Math.floor(totalSeconds / 3600);
             let minutes = Math.floor((totalSeconds % 3600) / 60);
             let seconds = totalSeconds % 60;
@@ -222,13 +238,11 @@
             msDisplay.textContent = `.${pad(centiseconds)}`;
         }
 
-        // Unified Toggle Action
         function handleToggle() {
             if (!isRunning) {
                 isRunning = true;
                 toggleBtn.textContent = 'Stop';
                 toggleBtn.classList.add('running');
-                
                 startTime = Date.now() - elapsedTime;
                 timerInterval = setInterval(() => {
                     elapsedTime = Date.now() - startTime;
@@ -245,19 +259,16 @@
         function reset() {
             isRunning = false;
             clearInterval(timerInterval);
-            
             toggleBtn.textContent = 'Start';
             toggleBtn.classList.remove('running');
-            
             elapsedTime = 0;
             updateTimeStrings(0);
         }
 
-        // Fullscreen Interface Switching
         function toggleFullscreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen()
-                    .catch(err => console.log(`Error enabling fullscreen: ${err.message}`));
+                    .catch(err => console.log(`Fullscreen error: ${err.message}`));
             } else {
                 document.exitFullscreen();
             }
@@ -271,11 +282,9 @@
             }
         });
 
-        // Event Assignments
         toggleBtn.addEventListener('click', handleToggle);
         resetBtn.addEventListener('click', reset);
         fullscreenBtn.addEventListener('click', toggleFullscreen);
     </script>
-
 </body>
 </html>
