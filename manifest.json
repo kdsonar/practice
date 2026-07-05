@@ -1,0 +1,16 @@
+{
+  "name": "Minimalist Stopwatch",
+  "short_name": "Stopwatch",
+  "start_url": "stopwatch.html",
+  "display": "standalone",
+  "background_color": "#0f0f11",
+  "theme-color": "#0f0f11",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='192' height='192' viewBox='0 0 24 24' fill='none' stroke='%23fdba74' stroke-width='2'><circle cx='12' cy='13' r='8'/><path d='M12 9v4l2 2M12 2v3M9 2h6'/></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}
