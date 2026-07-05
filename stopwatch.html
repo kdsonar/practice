@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Minimalist Precision Toggle Stopwatch</title>
     <style>
         /* Reset & Core Canvas */
@@ -20,26 +20,36 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            /* svh (small viewport height) prevents mobile browser toolbars from cutting off content */
+            min-height: 100svh;
             overflow: hidden;
             position: relative;
+            padding: 1rem;
         }
 
         /* Fullscreen Toggle Button */
         .fullscreen-btn {
             position: absolute;
-            top: 1.5rem;
-            right: 1.5rem;
+            top: 1rem;
+            right: 1rem;
             background: transparent;
             border: 1px solid #27272a;
             color: #71717a;
-            padding: 0.5rem;
-            border-radius: 6px;
+            padding: 0.75rem; /* Larger tap target for mobile devices */
+            border-radius: 8px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Hide fullscreen button completely on iOS Safari since it lacks standard Fullscreen API support */
+        @supports (-webkit-touch-callout: none) and (not (sidebar-color: unset)) {
+            .fullscreen-btn {
+                display: none;
+            }
         }
 
         .fullscreen-btn:hover {
@@ -61,7 +71,9 @@
         /* Stopwatch Container */
         .stopwatch-container {
             text-align: center;
-            padding: 2rem;
+            width: 100%;
+            max-width: 500px;
+            padding: 1rem;
             user-select: none;
         }
 
@@ -71,43 +83,45 @@
             letter-spacing: -0.02em;
             font-variant-numeric: tabular-nums; 
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-            margin-bottom: 3rem;
+            margin-bottom: 3.5rem;
             color: #f4f4f5;
             text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
             display: flex;
             align-items: baseline;
             justify-content: center;
+            flex-wrap: nowrap; /* Forces time to stay inline on narrow screens */
         }
 
         /* Main Clock Face (HH:MM:SS) */
         .main-time {
-            font-size: 6.5rem;
-            transition: font-size 0.3s ease;
+            font-size: clamp(3.2rem, 14vw, 6.5rem); /* Dynamically scales based on device width */
+            transition: font-size 0.25s ease;
         }
 
         /* Milliseconds Separator & Digits */
         .ms-time {
-            font-size: 3.5rem;
+            font-size: clamp(1.8rem, 7.5vw, 3.5rem);
             color: #71717a;
-            margin-left: 0.2rem;
+            margin-left: 0.15rem;
             font-weight: 200;
-            transition: font-size 0.3s ease;
+            transition: font-size 0.25s ease;
         }
 
-        /* Responsive Scale Up for Immersive Fullscreen */
+        /* Immersive Responsive Fullscreen Rules */
         :fullscreen .main-time {
-            font-size: 11rem;
+            font-size: clamp(4.5rem, 18vw, 12rem);
         }
         
         :fullscreen .ms-time {
-            font-size: 5.5rem;
+            font-size: clamp(2.5rem, 9.5vw, 6rem);
         }
 
         /* Controls Layout */
         .controls {
             display: flex;
-            gap: 1.25rem;
+            gap: 1rem;
             justify-content: center;
+            width: 100%;
         }
 
         /* Shared Button Aesthetics */
@@ -115,37 +129,44 @@
             background: #18181b;
             color: #a1a1aa;
             border: 1px solid #27272a;
-            padding: 0.85rem 2.5rem;
-            font-size: 1rem;
+            padding: 0.9rem 0;
+            font-size: 1.05rem;
             font-weight: 500;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             outline: none;
-            min-width: 110px; /* Prevents button resizing when text toggles */
+            flex: 1; /* Allows buttons to share container width equally on mobile screens */
+            max-width: 160px;
+            -webkit-tap-highlight-color: transparent; /* Removes blue tap flash on mobile browsers */
         }
 
-        .btn:hover {
-            color: #f4f4f5;
-            background: #27272a;
-            border-color: #3f3f46;
-            transform: translateY(-1px);
+        /* Desktop specific styles to avoid sticky hover states on mobile touch profiles */
+        @media (hover: hover) {
+            .btn:hover {
+                color: #f4f4f5;
+                background: #27272a;
+                border-color: #3f3f46;
+                transform: translateY(-1px);
+            }
         }
 
         .btn:active {
-            transform: translateY(1px);
+            transform: scale(0.98);
         }
 
         /* Combined Toggle Button - Active States */
         .btn-toggle.running {
-            background: #451a03; /* Deep amber/red hint for stop state */
+            background: #451a03; 
             color: #fdba74;
             border-color: #78350f;
         }
 
-        .btn-toggle.running:hover {
-            background: #78350f;
-            border-color: #9a3412;
+        @media (hover: hover) {
+            .btn-toggle.running:hover {
+                background: #78350f;
+                border-color: #9a3412;
+            }
         }
     </style>
 </head>
@@ -166,7 +187,6 @@
         </div>
         
         <div class="controls">
-            <!-- Consolidated Toggle Button -->
             <button class="btn btn-toggle" id="toggleBtn">Start</button>
             <button class="btn" id="resetBtn">Reset</button>
         </div>
@@ -205,7 +225,6 @@
         // Unified Toggle Action
         function handleToggle() {
             if (!isRunning) {
-                // START TIMER
                 isRunning = true;
                 toggleBtn.textContent = 'Stop';
                 toggleBtn.classList.add('running');
@@ -216,11 +235,9 @@
                     updateTimeStrings(elapsedTime);
                 }, 10);
             } else {
-                // STOP TIMER
                 isRunning = false;
                 toggleBtn.textContent = 'Start';
                 toggleBtn.classList.remove('running');
-                
                 clearInterval(timerInterval);
             }
         }
@@ -229,7 +246,6 @@
             isRunning = false;
             clearInterval(timerInterval);
             
-            // Revert Toggle Button UI
             toggleBtn.textContent = 'Start';
             toggleBtn.classList.remove('running');
             
