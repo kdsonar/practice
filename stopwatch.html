@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimalist Precision Toggle Stopwatch</title>
+    <style>
+        /* Reset & Core Canvas */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #0f0f11;
+            color: #e4e4e7;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Fullscreen Toggle Button */
+        .fullscreen-btn {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: transparent;
+            border: 1px solid #27272a;
+            color: #71717a;
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .fullscreen-btn:hover {
+            color: #f4f4f5;
+            border-color: #3f3f46;
+            background: #18181b;
+        }
+
+        .fullscreen-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* Stopwatch Container */
+        .stopwatch-container {
+            text-align: center;
+            padding: 2rem;
+            user-select: none;
+        }
+
+        /* Time Display Container */
+        .time-display {
+            font-weight: 300;
+            letter-spacing: -0.02em;
+            font-variant-numeric: tabular-nums; 
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            margin-bottom: 3rem;
+            color: #f4f4f5;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+        }
+
+        /* Main Clock Face (HH:MM:SS) */
+        .main-time {
+            font-size: 6.5rem;
+            transition: font-size 0.3s ease;
+        }
+
+        /* Milliseconds Separator & Digits */
+        .ms-time {
+            font-size: 3.5rem;
+            color: #71717a;
+            margin-left: 0.2rem;
+            font-weight: 200;
+            transition: font-size 0.3s ease;
+        }
+
+        /* Responsive Scale Up for Immersive Fullscreen */
+        :fullscreen .main-time {
+            font-size: 11rem;
+        }
+        
+        :fullscreen .ms-time {
+            font-size: 5.5rem;
+        }
+
+        /* Controls Layout */
+        .controls {
+            display: flex;
+            gap: 1.25rem;
+            justify-content: center;
+        }
+
+        /* Shared Button Aesthetics */
+        .btn {
+            background: #18181b;
+            color: #a1a1aa;
+            border: 1px solid #27272a;
+            padding: 0.85rem 2.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            outline: none;
+            min-width: 110px; /* Prevents button resizing when text toggles */
+        }
+
+        .btn:hover {
+            color: #f4f4f5;
+            background: #27272a;
+            border-color: #3f3f46;
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        /* Combined Toggle Button - Active States */
+        .btn-toggle.running {
+            background: #451a03; /* Deep amber/red hint for stop state */
+            color: #fdba74;
+            border-color: #78350f;
+        }
+
+        .btn-toggle.running:hover {
+            background: #78350f;
+            border-color: #9a3412;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Minimal Fullscreen Toggle -->
+    <button class="fullscreen-btn" id="fullscreenBtn" title="Toggle Fullscreen">
+        <svg id="fsIcon" viewBox="0 0 24 24">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+        </svg>
+    </button>
+
+    <div class="stopwatch-container">
+        <!-- Display Block -->
+        <div class="time-display">
+            <span class="main-time" id="mainDisplay">00:00:00</span>
+            <span class="ms-time" id="msDisplay">.00</span>
+        </div>
+        
+        <div class="controls">
+            <!-- Consolidated Toggle Button -->
+            <button class="btn btn-toggle" id="toggleBtn">Start</button>
+            <button class="btn" id="resetBtn">Reset</button>
+        </div>
+    </div>
+
+    <script>
+        // DOM Handles
+        const mainDisplay = document.getElementById('mainDisplay');
+        const msDisplay = document.getElementById('msDisplay');
+        const toggleBtn = document.getElementById('toggleBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const fsIcon = document.getElementById('fsIcon');
+
+        // Core Tracking State
+        let startTime = 0;
+        let elapsedTime = 0;
+        let timerInterval = null;
+        let isRunning = false;
+
+        // Formats milliseconds into distinct base clock and sub-second components
+        function updateTimeStrings(ms) {
+            let totalSeconds = Math.floor(ms / 1000);
+            
+            let hours = Math.floor(totalSeconds / 3600);
+            let minutes = Math.floor((totalSeconds % 3600) / 60);
+            let seconds = totalSeconds % 60;
+            let centiseconds = Math.floor((ms % 1000) / 10);
+
+            const pad = (num) => String(num).padStart(2, '0');
+
+            mainDisplay.textContent = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+            msDisplay.textContent = `.${pad(centiseconds)}`;
+        }
+
+        // Unified Toggle Action
+        function handleToggle() {
+            if (!isRunning) {
+                // START TIMER
+                isRunning = true;
+                toggleBtn.textContent = 'Stop';
+                toggleBtn.classList.add('running');
+                
+                startTime = Date.now() - elapsedTime;
+                timerInterval = setInterval(() => {
+                    elapsedTime = Date.now() - startTime;
+                    updateTimeStrings(elapsedTime);
+                }, 10);
+            } else {
+                // STOP TIMER
+                isRunning = false;
+                toggleBtn.textContent = 'Start';
+                toggleBtn.classList.remove('running');
+                
+                clearInterval(timerInterval);
+            }
+        }
+
+        function reset() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            
+            // Revert Toggle Button UI
+            toggleBtn.textContent = 'Start';
+            toggleBtn.classList.remove('running');
+            
+            elapsedTime = 0;
+            updateTimeStrings(0);
+        }
+
+        // Fullscreen Interface Switching
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen()
+                    .catch(err => console.log(`Error enabling fullscreen: ${err.message}`));
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                fsIcon.innerHTML = '<path d="M4 14h6v6m10-6h-6v6M4 10h6V4m10 6h-6V4"></path>';
+            } else {
+                fsIcon.innerHTML = '<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>';
+            }
+        });
+
+        // Event Assignments
+        toggleBtn.addEventListener('click', handleToggle);
+        resetBtn.addEventListener('click', reset);
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+    </script>
+
+</body>
+</html>
