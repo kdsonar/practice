@@ -68,6 +68,13 @@
             stroke-linejoin: round;
         }
 
+        /* Hide fullscreen button on screen width below 250px */
+        @media screen and (max-width: 250px) {
+            .fullscreen-btn {
+                display: none !important;
+            }
+        }
+
         /* Stopwatch Wrapper Layout */
         .stopwatch-container {
             text-align: center;
