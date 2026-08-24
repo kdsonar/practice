@@ -27,54 +27,6 @@
             padding: 1.5rem;
         }
 
-        /* Fullscreen Toggle Button - Bottom Right */
-        .fullscreen-btn {
-            position: absolute;
-            bottom: 1.25rem;
-            right: 1.25rem;
-            background: transparent;
-            border: 1px solid #27272a;
-            color: #71717a;
-            padding: 0.75rem; 
-            border-radius: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-            -webkit-tap-highlight-color: transparent;
-            z-index: 10;
-        }
-
-        @supports (-webkit-touch-callout: none) and (not (sidebar-color: unset)) {
-            .fullscreen-btn {
-                display: none;
-            }
-        }
-
-        .fullscreen-btn:hover {
-            color: #f4f4f5;
-            border-color: #3f3f46;
-            background: #18181b;
-        }
-
-        .fullscreen-btn svg {
-            width: 20px;
-            height: 20px;
-            fill: none;
-            stroke: currentColor;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        /* Hide fullscreen button on screen width below 250px */
-        @media screen and (max-width: 250px) {
-            .fullscreen-btn {
-                display: none !important;
-            }
-        }
-
         /* Stopwatch Wrapper Layout */
         .stopwatch-container {
             text-align: center;
@@ -117,28 +69,7 @@
             transition: font-size 0.2s ease;
         }
 
-        /* Desktop/Tablet Fullscreen Scale Up */
-        :fullscreen .main-time {
-            font-size: clamp(5rem, 15vw, 11rem);
-        }
-        :fullscreen .ms-time {
-            font-size: clamp(2.5rem, 8vw, 5.5rem);
-        }
-
-        /* --- STRICT PORTRAIT FULLSCREEN OVERRIDES --- */
-        @media screen and (max-width: 480px) {
-            :fullscreen .main-time {
-                font-size: 11vw !important; 
-            }
-            :fullscreen .ms-time {
-                font-size: 5.5vw !important;
-            }
-            :fullscreen .time-display {
-                margin-bottom: 3rem;
-            }
-        }
-
-        /* --- STRICT LANDSCAPE FULLSCREEN OVERRIDES --- */
+        /* --- STRICT LANDSCAPE OVERRIDES --- */
         @media screen and (max-height: 450px) and (orientation: landscape) {
             .time-display {
                 margin-bottom: 1.25rem;
@@ -212,20 +143,11 @@
         </div>
     </div>
 
-    <!-- Minimal Fullscreen Toggle Icon -->
-    <button class="fullscreen-btn" id="fullscreenBtn" title="Toggle Fullscreen">
-        <svg id="fsIcon" viewBox="0 0 24 24">
-            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
-        </svg>
-    </button>
-
     <script>
         const mainDisplay = document.getElementById('mainDisplay');
         const msDisplay = document.getElementById('msDisplay');
         const toggleBtn = document.getElementById('toggleBtn');
         const resetBtn = document.getElementById('resetBtn');
-        const fullscreenBtn = document.getElementById('fullscreenBtn');
-        const fsIcon = document.getElementById('fsIcon');
 
         let startTime = 0;
         let elapsedTime = 0;
@@ -271,26 +193,8 @@
             updateTimeStrings(0);
         }
 
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen()
-                    .catch(err => console.log(`Error enabling fullscreen: ${err.message}`));
-            } else {
-                document.exitFullscreen();
-            }
-        }
-
-        document.addEventListener('fullscreenchange', () => {
-            if (document.fullscreenElement) {
-                fsIcon.innerHTML = '<path d="M4 14h6v6m10-6h-6v6M4 10h6V4m10 6h-6V4"></path>';
-            } else {
-                fsIcon.innerHTML = '<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>';
-            }
-        });
-
         toggleBtn.addEventListener('click', handleToggle);
         resetBtn.addEventListener('click', reset);
-        fullscreenBtn.addEventListener('click', toggleFullscreen);
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
