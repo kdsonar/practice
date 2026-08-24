@@ -25,16 +25,26 @@
             overflow: hidden;
             position: relative;
             padding: 0.5rem;
-            -webkit-app-region: drag;
+            -webkit-app-region: drag; /* Makes the entire window draggable */
             user-select: none;
         }
 
-        /* Top Bar Close Control */
+        /* Top Bar Controls */
         .window-controls {
             position: absolute;
             top: 0.4rem;
             right: 0.4rem;
             display: flex;
+            gap: 0.3rem;
+            z-index: 20;
+            -webkit-app-region: no-drag;
+        }
+
+        /* Bottom Right Fullscreen Button */
+        .fullscreen-btn {
+            position: absolute;
+            bottom: 0.4rem;
+            right: 0.4rem;
             z-index: 20;
             -webkit-app-region: no-drag;
         }
@@ -55,10 +65,26 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        .icon-btn:hover {
+            color: #f4f4f5;
+            background: #27272a;
+            border-color: #3f3f46;
+        }
+
         .close-btn:hover {
             color: #ef4444;
             background: #27272a;
             border-color: #7f1d1d;
+        }
+
+        .icon-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
         }
 
         /* Stopwatch Wrapper Layout */
@@ -139,6 +165,18 @@
         .btn:active {
             transform: scale(0.97);
         }
+
+        .btn-toggle.running {
+            background: #451a03; 
+            color: #fdba74;
+            border-color: #78350f;
+        }
+
+        /* Fullscreen Viewport Overrides */
+        :fullscreen .main-time { font-size: clamp(5rem, 15vw, 11rem); }
+        :fullscreen .ms-time { font-size: clamp(2.5rem, 8vw, 5.5rem); }
+        :fullscreen .time-display { margin-bottom: 2.5rem; }
+        :fullscreen .btn { max-width: 140px; padding: 0.85rem 0; font-size: 1rem; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -157,11 +195,19 @@
         </div>
     </div>
 
+    <button class="icon-btn fullscreen-btn" id="fullscreenBtn" title="Toggle Fullscreen">
+        <svg id="fsIcon" viewBox="0 0 24 24">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+        </svg>
+    </button>
+
     <script>
         const mainDisplay = document.getElementById('mainDisplay');
         const msDisplay = document.getElementById('msDisplay');
         const toggleBtn = document.getElementById('toggleBtn');
         const resetBtn = document.getElementById('resetBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const fsIcon = document.getElementById('fsIcon');
 
         let startTime = 0;
         let elapsedTime = 0;
@@ -184,6 +230,7 @@
             if (!isRunning) {
                 isRunning = true;
                 toggleBtn.textContent = 'Stop';
+                toggleBtn.classList.add('running');
                 startTime = Date.now() - elapsedTime;
                 timerInterval = setInterval(() => {
                     elapsedTime = Date.now() - startTime;
@@ -192,6 +239,7 @@
             } else {
                 isRunning = false;
                 toggleBtn.textContent = 'Start';
+                toggleBtn.classList.remove('running');
                 clearInterval(timerInterval);
             }
         }
@@ -200,12 +248,30 @@
             isRunning = false;
             clearInterval(timerInterval);
             toggleBtn.textContent = 'Start';
+            toggleBtn.classList.remove('running');
             elapsedTime = 0;
             updateTimeStrings(0);
         }
 
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                fsIcon.innerHTML = '<path d="M4 14h6v6m10-6h-6v6M4 10h6V4m10 6h-6V4"></path>';
+            } else {
+                fsIcon.innerHTML = '<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>';
+            }
+        });
+
         toggleBtn.addEventListener('click', handleToggle);
         resetBtn.addEventListener('click', reset);
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
