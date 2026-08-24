@@ -81,8 +81,8 @@
                 font-size: clamp(1.6rem, 9vh, 2.5rem) !important;
             }
             .btn {
-                padding: 0.55rem 0 !important;
-                font-size: 0.95rem !important;
+                padding: 0.6rem 0 !important;
+                font-size: 1.05rem !important;
             }
         }
 
@@ -99,8 +99,8 @@
             background: #18181b;
             color: #a1a1aa;
             border: 1px solid #27272a;
-            padding: 0.85rem 0;
-            font-size: 1rem;
+            padding: 0.9rem 0;
+            font-size: 1.15rem;
             font-weight: 500;
             border-radius: 10px;
             cursor: pointer;
@@ -198,9 +198,7 @@
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('Service Worker Registered'))
-                    .catch(err => console.log('Service Worker Fail', err));
+                navigator.serviceWorker.register('sw.js').catch(() => {});
             });
         }
     </script>
