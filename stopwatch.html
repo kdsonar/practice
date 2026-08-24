@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Stopwatch</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f0f11">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #0f0f11;
+            color: #e4e4e7;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100svh;
+            overflow: hidden;
+            position: relative;
+            padding: 0.5rem;
+            -webkit-app-region: drag;
+            user-select: none;
+        }
+
+        /* Top Bar Close Control */
+        .window-controls {
+            position: absolute;
+            top: 0.4rem;
+            right: 0.4rem;
+            display: flex;
+            z-index: 20;
+            -webkit-app-region: no-drag;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: #71717a;
+            padding: 0.35rem 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            line-height: 1;
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .close-btn:hover {
+            color: #ef4444;
+            background: #27272a;
+            border-color: #7f1d1d;
+        }
+
+        /* Stopwatch Wrapper Layout */
+        .stopwatch-container {
+            text-align: center;
+            width: 100%;
+            max-width: 480px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: 0.4rem;
+        }
+
+        /* Time Display Container */
+        .time-display {
+            font-weight: 300;
+            letter-spacing: -0.02em;
+            font-variant-numeric: tabular-nums; 
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            margin-bottom: 0.6rem;
+            color: #f4f4f5;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .main-time {
+            font-size: clamp(1.2rem, 10vw, 5.5rem);
+            transition: font-size 0.2s ease;
+        }
+
+        .ms-time {
+            font-size: clamp(0.8rem, 5.5vw, 2.8rem);
+            color: #71717a;
+            margin-left: 0.1rem;
+            font-weight: 200;
+            transition: font-size 0.2s ease;
+        }
+
+        /* Controls Layout */
+        .controls {
+            display: flex;
+            gap: 0.4rem;
+            justify-content: center;
+            width: 100%;
+        }
+
+        /* Buttons */
+        .btn {
+            background: #18181b;
+            color: #a1a1aa;
+            border: 1px solid #27272a;
+            padding: 0.4rem 0;
+            font-size: 0.8rem;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            outline: none;
+            flex: 1; 
+            max-width: 65px;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-app-region: no-drag;
+        }
+
+        @media (hover: hover) {
+            .btn:hover {
+                color: #f4f4f5;
+                background: #27272a;
+                border-color: #3f3f46;
+                transform: translateY(-1px);
+            }
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+    </style>
+</head>
+<body>
+    <div class="window-controls">
+        <button class="icon-btn close-btn" id="closeBtn" onclick="window.close()" title="Close">✕</button>
+    </div>
+
+    <div class="stopwatch-container">
+        <div class="time-display">
+            <span class="main-time" id="mainDisplay">00:00:00</span>
+            <span class="ms-time" id="msDisplay">.00</span>
+        </div>        
+        <div class="controls">
+            <button class="btn btn-toggle" id="toggleBtn">Start</button>
+            <button class="btn" id="resetBtn">Reset</button>
+        </div>
+    </div>
+
+    <script>
+        const mainDisplay = document.getElementById('mainDisplay');
+        const msDisplay = document.getElementById('msDisplay');
+        const toggleBtn = document.getElementById('toggleBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        let startTime = 0;
+        let elapsedTime = 0;
+        let timerInterval = null;
+        let isRunning = false;
+
+        function updateTimeStrings(ms) {
+            let totalSeconds = Math.floor(ms / 1000);
+            let hours = Math.floor(totalSeconds / 3600);
+            let minutes = Math.floor((totalSeconds % 3600) / 60);
+            let seconds = totalSeconds % 60;
+            let centiseconds = Math.floor((ms % 1000) / 10);
+
+            const pad = (num) => String(num).padStart(2, '0');
+            mainDisplay.textContent = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+            msDisplay.textContent = `.${pad(centiseconds)}`;
+        }
+
+        function handleToggle() {
+            if (!isRunning) {
+                isRunning = true;
+                toggleBtn.textContent = 'Stop';
+                startTime = Date.now() - elapsedTime;
+                timerInterval = setInterval(() => {
+                    elapsedTime = Date.now() - startTime;
+                    updateTimeStrings(elapsedTime);
+                }, 10);
+            } else {
+                isRunning = false;
+                toggleBtn.textContent = 'Start';
+                clearInterval(timerInterval);
+            }
+        }
+
+        function reset() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            toggleBtn.textContent = 'Start';
+            elapsedTime = 0;
+            updateTimeStrings(0);
+        }
+
+        toggleBtn.addEventListener('click', handleToggle);
+        resetBtn.addEventListener('click', reset);
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(() => {});
+            });
+        }
+    </script>
+</body>
+</html>
